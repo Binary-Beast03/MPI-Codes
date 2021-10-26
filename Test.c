@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include "mpi.h"
 
-int main(int argc, char* argv[]) {
+main(int argc, char* argv[]) {
     int p;
     int my_rank;
     float A[10][10];
@@ -28,14 +28,14 @@ int main(int argc, char* argv[]) {
     if (my_rank == 0) {
         for (i = 0; i < 10; i++)
             for (j = 0; j < 10; j++)
-                A[i][j] = (float) j;
-        MPI_Send(&(A[0][2]), 1, column_mpi_t, 1, 0,
+                A[i][j] = (float) i;
+        MPI_Send(&(A[0][0]), 1, column_mpi_t, 1, 0,
                  MPI_COMM_WORLD);
     } else { /* my_rank = 1 */
         for (i = 0; i < 10; i++)
             for (j = 0; j < 10; j++)
                 A[i][j] = 0.0;
-        MPI_Recv(A, 10, MPI_FLOAT, 0, 0,
+        MPI_Recv(&(A[0][0]), 10, MPI_FLOAT, 0, 0,
                  MPI_COMM_WORLD, &status);
         for (j = 0; j < 10; j++)
             printf("%3.1f ", A[0][j]);
