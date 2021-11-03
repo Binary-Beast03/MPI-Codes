@@ -30,28 +30,6 @@ int main(int argc, char **argv)
     lower=1;
     upper=10000;
     
-    
-
-//     int a[N][N]={{1,2,3,4},{5,6,7,8},{9,1,2,3},{4,5,6,7,}};
-//     int b[N][N]={{1,2,3,4},{5,6,7,8},{9,1,2,3},{4,5,6,7,}};
-//     int mul[N][N];
-//     int aa[N],cc[N];
-
-
-//     int** a =(int**)calloc(r,sizeof(int*));
-//     for (i = 0; i < r; i++)
-//         a[i] = (int*)malloc(c * sizeof(int));
-
-//     int** b =(int**)malloc(r*sizeof(int*));
-//     for (i = 0; i < r; i++)
-//         b[i] = (int*)malloc(c * sizeof(int));
-
-//     int** mul =(int**)malloc(r*sizeof(int*));
-//     for (i = 0; i < r; i++)
-//         mul[i] = (int*)malloc(c * sizeof(int));     
-    
-     
-    
     MPI_Init(&argc, &argv);
     FILE *fp;
     fp=fopen("matrix_multi_parallel.csv","w");
@@ -59,8 +37,7 @@ int main(int argc, char **argv)
     {
     t = clock();
 
-    // int b[size][size],mul[size][size];
-    // int a[size][size];
+
     int (*a)[size] = malloc(size * sizeof(*a));
     int (*b)[size] = malloc(size * sizeof(*b));
     int (*mul)[size] = malloc(size * sizeof(*mul));
@@ -136,33 +113,10 @@ int main(int argc, char **argv)
     // free(cc);
     free(a);
     free(b);
-    free(mul); 
-    // free(aa);
-    // free(cc);
+    free(mul);
     }      
     MPI_Finalize();
 
-//     if(world_rank==0)
-//     {
-//             for(i=0;i<r;i++)
-//             {
-//                 for(j=0;j<c;j++)
-//                         printf("%7d ",mul[i][j]);
-//                 printf("\n");
-//             }
-//     }                      
-        // print_results("C = ", mul);
-}
-// void print_results(char *prompt, int a[N][N])
-// {
-//     int i, j;
 
-//     printf ("\n\n%s\n", prompt);
-//     for (i = 0; i < N; i++) {
-//             for (j = 0; j < N; j++) {
-//                     printf(" %d", a[i][j]);
-//             }
-//             printf ("\n");
-//     }
-//     printf ("\n\n");
-// }
+}
+
