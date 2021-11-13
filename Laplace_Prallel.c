@@ -141,6 +141,7 @@ void update_matrix (float **local_tab, int nb_rows, int N, int world_size, int w
     //     printf("\n");
     // }
 
+    
     /* ---- SENDING ---- */
     if (world_rank != 0)
     {
