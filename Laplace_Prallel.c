@@ -262,6 +262,7 @@ void bounday_cond(float **local_tab, int world_rank, int world_size, int N, int 
     // }
     /*----------------print local array-----------------*/
 
+    
 
     free(boundry_y);
     free(boundry_y_strip);
