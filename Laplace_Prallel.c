@@ -5,7 +5,7 @@
 void initialize_mat         (int world_size, int world_rank, int N, float **local_tab,float **local_tab1,int nb_rows);
 void laplace                (int nb_rows,int N,float epsilon,float **local_tab,float **local_tab1,int world_size,int world_rank);
 void update_matrix          (float **local_tab, int nb_rows, int N, int world_size, int world_rank);
-void save_file_final_matrix (char filename[], int world_rank, float **local_tab, int N , int world_size);
+void save_file_final_matrix (char filename[], int world_rank, float **local_tab, int N , int world_size, int nb_rows);
 void bounday_cond           (float **local_tab, int world_rank, int world_size, int N, int nb_rows,float slope);
 void print_matrix           (int world_rank, int N, float **local_tab, int nb_rows);
 /*-------------------MAIN-------------------------*/
@@ -45,8 +45,8 @@ int main(int argc, char **argv)
     update_matrix(local_tab,nb_rows,N,world_size,world_rank);
     // print_matrix(world_rank,N,local_tab,nb_rows);
     laplace(nb_rows,N,epsilon,local_tab,local_tab,world_size,world_rank);
-    print_matrix(world_rank,N,local_tab,nb_rows);
-    save_file_final_matrix("laplace_parallel.csv",world_rank,local_tab,N,world_size);
+    // print_matrix(world_rank,N,local_tab,nb_rows);
+    save_file_final_matrix("laplace_parallel.csv",world_rank,local_tab,N,world_size,nb_rows);
     MPI_Finalize();
     return 0;
 }
@@ -85,6 +85,7 @@ void laplace(int nb_rows,int N,float epsilon,float **local_tab,float **local_tab
     int i,j,k;
     int max_iterations = 2000;
     int x = 1;
+    double U = 0.0;
     for (int k = 0; k < max_iterations; k++){
         if(world_rank==0)
             x=2;
@@ -97,8 +98,6 @@ void laplace(int nb_rows,int N,float epsilon,float **local_tab,float **local_tab
                     }
 
         }
-        if ((local_tab[1][1] - local_tab1[1][1]) < epsilon) break;
-                local_tab1[1][1] = local_tab[1][1];
     update_matrix(local_tab,nb_rows,N,world_size,world_rank);
     }
     
@@ -185,30 +184,45 @@ void update_matrix (float **local_tab, int nb_rows, int N, int world_size, int w
 }
 
 
-void save_file_final_matrix (char filename[], int world_rank, float **local_tab, int N , int world_size)
+void save_file_final_matrix (char filename[], int world_rank, float **local_tab, int N , int world_size, int nb_rows)
 {
     FILE *f;
     int i,j;
-    float (*final_matrix)[N] = malloc(N*sizeof(*final_matrix));
-    if (final_matrix == NULL) { exit(-1); }  
+    // float (*final_matrix)[N] = malloc(N*sizeof(*final_matrix));
+    // if (final_matrix == NULL) { exit(-1); }
+    float* final_matrix[N];
+    for (i = 0; i < N; i++)
+        final_matrix[i] = (float*)malloc(N * sizeof(float));
+    int send_recv_size = N*N+world_rank; 
 
-    int root_id = 0 ; 
-    MPI_Gather(local_tab, N*(N/world_size), MPI_FLOAT, final_matrix, N*(N/world_size), MPI_FLOAT, root_id, MPI_COMM_WORLD );
-
-    if (world_rank == 0)
+    int root_id = 0 ;
+    if (world_rank == 0){
+    MPI_Gather(local_tab, send_recv_size, MPI_FLOAT, final_matrix, send_recv_size, MPI_FLOAT, root_id, MPI_COMM_WORLD );
+    for(i = 0; i<N; i++)
     {
-        if ((f = fopen (filename, "w")) == NULL) { perror ("matrix_save: fopen "); }
-        for (i = 0; i<N; i++)
+        for(j = 0; j<N; j++)
         {
-            for (j=0; j<N; j++)
-            {
-                fprintf (f, "%f ", final_matrix[i][j] ); 
-                //fprintf (f, "%d ", (int) *(final_matrix + j + i*N) );
-            }
-            fprintf (f, "\n");
+            printf("%2.f ",final_matrix[i][j]);
         }
-        fclose (f);
+        printf("\n");
     }
+    }
+    else
+        MPI_Gather(local_tab, send_recv_size, MPI_FLOAT, NULL, send_recv_size, MPI_FLOAT, root_id, MPI_COMM_WORLD );
+    // if (world_rank == 0)
+    // {
+    //     if ((f = fopen (filename, "w")) == NULL) { perror ("matrix_save: fopen "); }
+    //     for (i = 1; i<N; i++)
+    //     {
+    //         for (j=0; j<N; j++)
+    //         {
+    //             fprintf (f, "%f ", final_matrix[i][j] ); 
+    //             //fprintf (f, "%d ", (int) *(final_matrix + j + i*N) );
+    //         }
+    //         fprintf (f, "\n");
+    //     }
+    //     fclose (f);
+    // }
     free(final_matrix);
 }
 
