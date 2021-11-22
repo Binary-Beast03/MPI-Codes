@@ -114,6 +114,7 @@ int main(int argc, char **argv)
     free(a);
     free(b);
     free(mul);
+    fclose(fp);
     }      
     MPI_Finalize();
 
