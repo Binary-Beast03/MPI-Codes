@@ -26,7 +26,8 @@ int main(int argc, char **argv)
     int i, j, k, rank, size, tag = 99,sum = 0,r,c;
     r=c=size=4;
     int upper,lower;
-
+    double start;
+    double end;
     lower=1;
     upper=10000;
     
@@ -35,8 +36,10 @@ int main(int argc, char **argv)
     fp=fopen("matrix_multi_parallel.csv","w");
     while(size!=3004)
     {
-    t = clock();
+    MPI_Barrier(MPI_COMM_WORLD);
 
+    t = clock();
+    start = MPI_Wtime();
 
     int (*a)[size] = malloc(size * sizeof(*a));
     int (*b)[size] = malloc(size * sizeof(*b));
@@ -91,9 +94,12 @@ int main(int argc, char **argv)
             }
 
     MPI_Gather(cc, N*N/size, MPI_INT, mul, N*N/size, MPI_INT, 0, MPI_COMM_WORLD);
-    t = clock() - t;
+    // t = clock() - t;
+    MPI_Barrier(MPI_COMM_WORLD);
+    end = MPI_Wtime();
     double t_store[world_size];
-    double time_taken = ((double)t)/CLOCKS_PER_SEC;
+    // double time_taken = ((double)t)/CLOCKS_PER_SEC;
+    double time_taken = end - start;
     if (world_rank == 0)
     {
         MPI_Gather(&time_taken,1,MPI_DOUBLE,t_store,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
@@ -114,7 +120,7 @@ int main(int argc, char **argv)
     free(a);
     free(b);
     free(mul);
-    fclose(fp);
+    // fclose(fp);
     }      
     MPI_Finalize();
 

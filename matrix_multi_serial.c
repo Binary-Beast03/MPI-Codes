@@ -78,7 +78,7 @@ int main()
     printf("size = %d time taken = %f \n",size,time_taken);
     fprintf(fp,"%d\t%f",size,time_taken);
     fprintf(fp,"\n");
-    size=size+100;
+    size=size+4;
     free(a);
     free(b);
     free(mul);
