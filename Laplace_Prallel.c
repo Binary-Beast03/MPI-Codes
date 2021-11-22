@@ -188,43 +188,46 @@ void update_matrix (float **local_tab, int nb_rows, int N, int world_size, int w
 void save_file_final_matrix (char filename[], int world_rank, float **local_tab, int N , int world_size, int nb_rows)
 {
     FILE *f;
-    int i,j;
-    // float (*final_matrix)[N] = malloc(N*sizeof(*final_matrix));
-    // if (final_matrix == NULL) { exit(-1); }
+    int i,j,x;
+    x = nb_rows-2;
+    float* temp_matrix[N];
+        for (i = 0; i < N; i++)
+            temp_matrix[i] = (float*)malloc(N * sizeof(float));  // Check if the memory has been well allocated
+
     float* final_matrix[N];
     for (i = 0; i < N; i++)
         final_matrix[i] = (float*)malloc(N * sizeof(float));
-    int send_recv_size = N*N+world_rank; 
 
-    int root_id = 0 ;
-    if (world_rank == 0){
-    MPI_Gather(local_tab, send_recv_size, MPI_FLOAT, final_matrix, send_recv_size, MPI_FLOAT, root_id, MPI_COMM_WORLD );
-    for(i = 0; i<N; i++)
+    int root_id = 0 ; // numero of the processor responsible of gathering the data
+    printf("\n \n Matrix printed by me: %d \n\n", world_rank);
+    for(i = 1; i<nb_rows-1; i++)
     {
         for(j = 0; j<N; j++)
         {
-            printf("%2.f ",final_matrix[i][j]);
+            // printf(" %.2f", local_tab[i][j]); // Change ".2f" to "%d" for more clarity (test mode, without laplace calculation)
+            temp_matrix[i][j] = local_tab[i][j];
+            // printf(" %.2f", temp_matrix[i][j]); 
+            //printf(" %d",(int) *(local_tab+j+i*N));
         }
         printf("\n");
     }
+    MPI_Gather(temp_matrix, (N/world_size), MPI_FLOAT, final_matrix, (N/world_size), MPI_FLOAT, root_id, MPI_COMM_WORLD );
+
+    if (world_rank == 0)
+    {
+        if ((f = fopen (filename, "w")) == NULL) { perror ("matrix_save: fopen "); }
+        for (i = 0; i<N; i++)
+        {
+            for (j=0; j<N; j++)
+            {
+                fprintf (f, "%f ", final_matrix[i][j]); // Change "%f" to "%d" for more clarity (test mode, without laplace calculation)
+                //fprintf (f, "%d ", (int) *(final_matrix + j + i*N) );
+            }
+            fprintf (f, "\n");
+        }
+        fclose (f);
     }
-    else
-        MPI_Gather(local_tab, send_recv_size, MPI_FLOAT, NULL, send_recv_size, MPI_FLOAT, root_id, MPI_COMM_WORLD );
-    // if (world_rank == 0)
-    // {
-    //     if ((f = fopen (filename, "w")) == NULL) { perror ("matrix_save: fopen "); }
-    //     for (i = 1; i<N; i++)
-    //     {
-    //         for (j=0; j<N; j++)
-    //         {
-    //             fprintf (f, "%f ", final_matrix[i][j] ); 
-    //             //fprintf (f, "%d ", (int) *(final_matrix + j + i*N) );
-    //         }
-    //         fprintf (f, "\n");
-    //     }
-    //     fclose (f);
-    // }
-    free(final_matrix);
+    // free(temp_matrix);
 }
 
 void bounday_cond(float **local_tab, int world_rank, int world_size, int N, int nb_rows,float slope)
