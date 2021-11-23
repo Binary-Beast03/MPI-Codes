@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
     fp=fopen("matrix_multi_fox.csv","w");
     n=0;
     u=2;
-    while(u!=24)
+    while(u!=23)
     {
     n=u*u;
     t = clock();            //time start
