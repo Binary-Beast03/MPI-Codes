@@ -20,8 +20,8 @@ int main(int argc, char **argv) {
 
     // Print off a hello world message
     // if(world_rank==4)
-        printf("Hi form rank %d \n",world_rank);
-        printf("%d \n",argc);
+    printf("Hi form rank %d \n",world_rank);
+        
     // else
     //     printf("Bye from rank %d\n",world_rank);
 
