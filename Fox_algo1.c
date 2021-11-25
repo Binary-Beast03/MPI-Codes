@@ -59,20 +59,26 @@ int main(int argc, char* argv[]) {
     int              n;
     int              n_bar;
     int              u;     //size controller
-    int              t;     //clocking time
-
+    clock_t          t;    //clocking time
+    double           start;
+    double           end;
+    
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
     MPI_Comm_size(MPI_COMM_WORLD,&world_size);
     FILE *fp;
-    fp=fopen("matrix_multi_fox.csv","w");
+    char buffer[100];
+    snprintf(buffer, sizeof(char) * 100, "matrix_multi_fox (nodes = %i).csv", world_size);
+    fp=fopen(buffer,"w");
     n=0;
     u=2;
     while(u!=23)
     {
     n=u*u;
     t = clock();            //time start
+    MPI_Barrier(MPI_COMM_WORLD);
     Setup_grid(&grid);
+    start = MPI_Wtime();
     // if (my_rank == 0) {
     //     printf("What's the order of the matrices?\n");
     //     scanf("%d", &n);
@@ -98,10 +104,12 @@ int main(int argc, char* argv[]) {
     Order(local_C) = n_bar;
     Fox(n, &grid, local_A, local_B, local_C);
     // Print_matrix("The product is", local_C, &grid, n);
-    t = clock() - t;            //time_end
-
+    // t = clock() - t;            //time_end
+    MPI_Barrier(MPI_COMM_WORLD);
+    end = MPI_Wtime();
     double t_store[world_size];
-    double time_taken = ((double)t)/CLOCKS_PER_SEC;
+    // double time_taken = ((double)t)/CLOCKS_PER_SEC;
+    double time_taken = end - start;
     if (world_rank == 0)
     {
         MPI_Gather(&time_taken,1,MPI_DOUBLE,t_store,1,MPI_DOUBLE,0,MPI_COMM_WORLD);

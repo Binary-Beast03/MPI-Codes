@@ -33,12 +33,18 @@ int main(int argc, char **argv)
     
     MPI_Init(&argc, &argv);
     FILE *fp;
-    fp=fopen("matrix_multi_parallel.csv","w");
+    int world_size;
+    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+    int world_rank;
+    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+    char buffer[100];
+    snprintf(buffer, sizeof(char) * 100, "matrix_multi_parallel (nodes = %i).csv", world_size);
+    fp=fopen(buffer,"w");
     while(size!=3004)
     {
     MPI_Barrier(MPI_COMM_WORLD);
 
-    t = clock();
+    // t = clock();
     start = MPI_Wtime();
 
     int (*a)[size] = malloc(size * sizeof(*a));
@@ -48,10 +54,7 @@ int main(int argc, char **argv)
     aa=(int*)malloc(size*sizeof(int));
     cc=(int*)malloc(size*sizeof(int));
 
-    int world_size;
-    MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-    int world_rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+    
 
     if(world_rank==0)
     {
