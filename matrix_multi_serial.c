@@ -11,7 +11,7 @@ int main()
     while(size<3000)
     {
     int r,c,i,j,k,lower,upper;
-    // int a[size][size], b[size][size],mul[size][size];
+    
     int (*a)[size] = malloc(size * sizeof(*a));
     int (*b)[size] = malloc(size * sizeof(*b));
     int (*mul)[size] = malloc(size * sizeof(*mul));
