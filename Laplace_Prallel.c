@@ -192,39 +192,45 @@ void save_file_final_matrix (char filename[], int world_rank, float **local_tab,
     int r =N/world_size;
     int test=16;
     
-    float* temp_matrix[r];
-        for (i = 0; i < r; i++)
-            temp_matrix[i] = (float*)malloc(N * sizeof(float)); // Check if the memory has been well allocated
+    // float* temp_matrix[r];
+    //     for (i = 0; i < r; i++)
+    //         temp_matrix[i] = (float*)malloc(N * sizeof(float)); // Check if the memory has been well allocated
 
-    float* final_matrix[N];
-    for (i = 0; i < N; i++)
-        final_matrix[i] = (float*)malloc(N * sizeof(float));
+    float (*temp_matrix)[r] = malloc(N * sizeof(*temp_matrix));//contigous memory allocation
+
+    // float* final_matrix[N];
+    // for (i = 0; i < N; i++)
+    //     final_matrix[i] = (float*)malloc(N * sizeof(float));
+
+    float (*final_matrix)[N] = malloc(N * sizeof(*final_matrix));
     
 
     int root_id = 0 ; // rank of the processor responsible of gathering the data
-    // printf("\n \n Matrix printed by me: %d \n\n", world_rank);
+    printf("\n \n Matrix printed by me: %d \n\n", world_rank);
     for(i = 1; i<nb_rows-1; i++)
     {
         for(j = 0; j<N; j++)
         {
             // printf(" %.2f", local_tab[i][j]); // Change ".2f" to "%d" for more clarity (test mode, without laplace calculation)
             temp_matrix[i-1][j] = local_tab[i][j];
-            // printf(" %.2f ", temp_matrix[i-1][j]);
+            printf(" %.2f \t", temp_matrix[i-1][j]);
             // printf("i = %d j = %d ",i-1,j);
             //printf(" %d",(int) *(local_tab+j+i*N));
         }
-        // printf("\n");
+        printf("\n");
     }
     if(world_rank == 0)
     {
         float final_matrix1[N][N];
         MPI_Gather(temp_matrix, test, MPI_FLOAT, final_matrix1, test, MPI_FLOAT, root_id, MPI_COMM_WORLD );
+        printf("\n \n Matrix printed by me: %d \n\n", world_rank);
         for(i=0;i<N;i++)
         {
             for(j=0;j<N;j++)
             {
-                printf("%2.f ",final_matrix1[i][j]);
+                printf("%2.f \t",final_matrix1[i][j]);
             }
+            printf("\n");
         }
     }
 
