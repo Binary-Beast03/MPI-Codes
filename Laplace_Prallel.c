@@ -8,6 +8,7 @@ void update_matrix          (float **local_tab, int nb_rows, int N, int world_si
 void save_file_final_matrix (char filename[], int world_rank, float *local_tab[], int N , int world_size, int nb_rows);
 void bounday_cond           (float **local_tab, int world_rank, int world_size, int N, int nb_rows,float slope);
 void print_matrix           (int world_rank, int N, float **local_tab, int nb_rows);
+double largest              (double arr[], int n);
 /*-------------------MAIN-------------------------*/
 
 int main(int argc, char **argv)
@@ -18,8 +19,10 @@ int main(int argc, char **argv)
     int world_rank;
     MPI_Comm_rank(MPI_COMM_WORLD,&world_rank);
     MPI_Barrier(MPI_COMM_WORLD);
-
-    int N = 8; //size of square matrices
+    FILE *fp;
+    double start;
+    double end;
+    int N = 304; //size of square matrices
     int nb_rows = (N/world_size)+2;
     int max_iterations = 2000;
     float upper_T = 100.0; // For linear temp scaling
@@ -29,6 +32,10 @@ int main(int argc, char **argv)
     int i,j;
     // float (*local_tab)[N] = malloc(N * sizeof(*local_tab));
     float* local_tab[N];
+    char buffer[100];
+    snprintf(buffer, sizeof(char) * 100, "Laplace equation (nodes = %i).csv", world_size);
+    fp=fopen(buffer,"w");
+
     for (i = 0; i < N; i++)
         local_tab[i] = (float*)malloc(N * sizeof(float));
 
@@ -37,7 +44,8 @@ int main(int argc, char **argv)
     float* local_tab1[N];
     for (i = 0; i < N; i++)
         local_tab1[i] = (float*)malloc(N * sizeof(float));
-
+    MPI_Barrier(MPI_COMM_WORLD);
+    start = MPI_Wtime();
     initialize_mat(world_size,world_rank,N,local_tab,local_tab1,nb_rows);
     
     bounday_cond(local_tab,world_rank,world_size,N,nb_rows,slope);
@@ -45,6 +53,22 @@ int main(int argc, char **argv)
     update_matrix(local_tab,nb_rows,N,world_size,world_rank);
     // print_matrix(world_rank,N,local_tab,nb_rows);
     laplace(nb_rows,N,epsilon,local_tab,local_tab,world_size,world_rank);
+    MPI_Barrier(MPI_COMM_WORLD);
+    end = MPI_Wtime();
+    double t_store[world_size];
+    double time_taken = end - start;
+    if (world_rank == 0)
+    {
+        MPI_Gather(&time_taken,1,MPI_DOUBLE,t_store,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+        int n = sizeof(t_store)/sizeof(t_store[0]);
+        printf("size = %d Time taken = %f \n",N,largest(t_store,n));
+        fprintf(fp,"%d\t%f",N,largest(t_store,n));
+        fprintf(fp,"\n");
+    }
+    else
+    {
+        MPI_Gather(&time_taken,1,MPI_DOUBLE,NULL,0,MPI_DOUBLE,0,MPI_COMM_WORLD);
+    }
     
     // save_file_final_matrix("laplace_parallel.csv",world_rank,local_tab,N,world_size,nb_rows);
     // print_matrix(world_rank,N,local_tab,nb_rows);
@@ -202,35 +226,35 @@ void save_file_final_matrix (char filename[], int world_rank, float **local_tab,
         MPI_Gather(temp_matrix, N*(N/world_size), MPI_FLOAT, NULL, 0, MPI_FLOAT, root_id, MPI_COMM_WORLD );
 
   
-    if (world_rank == 0)
-    {
-        for(i=1;i<nb_rows-1;i++)
-        {
-        for(j=0;j<N;j++)
-        {
-                printf("%f \t",final_matrix[i-1][j]);
-        }
-        printf("\n");
-        }
-        // if ((f = fopen (filename, "w")) == NULL) { perror ("matrix_save: fopen "); }
-        // for (i = 0; i<N; i++)
-        // {
-        //     for (j=0; j<N; j++)
-        //     {
-        //         fprintf (f, "%f ", final_matrix[i][j]); // Change "%f" to "%d" for more clarity (test mode, without laplace calculation)
-        //         //fprintf (f, "%d ", (int) *(final_matrix + j + i*N) );
-        //     }
-        //     fprintf (f, "\n");
-        // }
-        // fclose (f);
+    // if (world_rank == 0)
+    // {
+    //     for(i=1;i<nb_rows-1;i++)
+    //     {
+    //     for(j=0;j<N;j++)
+    //     {
+    //             printf("%f \t",final_matrix[i-1][j]);
+    //     }
+    //     printf("\n");
+    //     }
+    //     // if ((f = fopen (filename, "w")) == NULL) { perror ("matrix_save: fopen "); }
+    //     // for (i = 0; i<N; i++)
+    //     // {
+    //     //     for (j=0; j<N; j++)
+    //     //     {
+    //     //         fprintf (f, "%f ", final_matrix[i][j]); // Change "%f" to "%d" for more clarity (test mode, without laplace calculation)
+    //     //         //fprintf (f, "%d ", (int) *(final_matrix + j + i*N) );
+    //     //     }
+    //     //     fprintf (f, "\n");
+    //     // }
+    //     // fclose (f);
 
 
    
+    // // }
+    // // for(i = 0; i<N/world_size;i++)
+    // // {
+    // //     free(temp_matrix[i]);
     // }
-    // for(i = 0; i<N/world_size;i++)
-    // {
-    //     free(temp_matrix[i]);
-    }
       
 }
 
@@ -304,4 +328,19 @@ void print_matrix(int world_rank, int N, float **local_tab, int nb_rows)
         }
         printf("\n");
     }
+}
+
+double largest(double arr[], int n)
+{
+    int i;
+    
+    // Initialize maximum element
+    double max = arr[0];
+ 
+
+    for (i = 1; i < n; i++)
+        if (arr[i] > max)
+            max = arr[i];
+ 
+    return max;
 }
