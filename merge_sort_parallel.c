@@ -16,10 +16,10 @@ int main(int argc, char** argv )
     int world_rank;
     MPI_Comm_rank(MPI_COMM_WORLD,&world_rank);
 
-    int N = 44;      //size of array
+    int N = 40;      //size of array
     int i,lower,upper,c;
     lower=1;
-    upper=100;
+    upper=1000;
     double start;
     double end;
     char buffer[100];
