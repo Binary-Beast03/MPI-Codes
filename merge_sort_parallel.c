@@ -62,7 +62,7 @@ int main(int argc, char** argv )
 		
 		int *other_array = malloc(N * sizeof(int));
 		mergesort(sorted, other_array, 0, (N - 1));
-		// MPI_Barrier(MPI_COMM_WORLD);
+		MPI_Barrier(MPI_COMM_WORLD);
         end = MPI_Wtime();
         double time_taken = end - start;
         printf("size = %d Time taken = %f \n",N,time_taken);
