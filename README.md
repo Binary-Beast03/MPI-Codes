@@ -52,5 +52,5 @@ Contributions to this repository are welcome! If you have any MPI code examples 
 
 ## License
 
-This repository is licensed under the MIT License. You can find more information in the [LICENSE](LICENSE) file.
+This repository is licensed under the MIT License. You can find more information in the [License](License/LICENSE.md) file.
    
